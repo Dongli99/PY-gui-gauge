@@ -11,9 +11,9 @@ class Gauge(Canvas):
         max_v=250,
         min_v=0,
         max_angle=240,
-        size=120,
+        size=300,
         partition=4,
-        loc={"x": 50, "y": 50},
+        loc={"x": 60, "y": 80},
         col_range=[[255, 0, 0], [0, 0, 255]],
     ):
         super().__init__()
@@ -26,10 +26,6 @@ class Gauge(Canvas):
         self.loc = loc
         self.col_range = col_range
         self.color_set = generateColors(self.col_range, self.partition - 1)
-        self.initUI()
-
-    def initUI(self):
-        self.configure(width=200, height=200)
         self.drawGauge()
 
     def setValue(self, value):
@@ -39,15 +35,15 @@ class Gauge(Canvas):
         self.drawDisplay(self.value)
 
     def drawGauge(self):
-        TICK_LEN = 10
         TICK_WID = 3
-        ARC_WIDTH = 3
+        ARC_WIDTH = 10
         self.create_text(
             self.loc["x"] + self.size / 2,
-            self.loc["y"] - 20,
+            self.loc["y"] - 30,
             text="GAUGE",
+            font=("Helvetica", 12, "bold"),
         )
-        self.drawTick(self.min_v, TICK_LEN, TICK_WID, ARC_WIDTH / 2)
+        self.drawTick(self.min_v, ARC_WIDTH * 2, TICK_WID, ARC_WIDTH / 2)
         for i in range(self.partition):
             self.drawArc(
                 self.loc,
@@ -58,9 +54,9 @@ class Gauge(Canvas):
                 ARC_WIDTH,
             )
             self.drawTick(
-                self.max_v / self.partition * i, TICK_LEN, TICK_WID, ARC_WIDTH / 2
+                self.max_v / self.partition * i, ARC_WIDTH * 2, TICK_WID, ARC_WIDTH / 2
             )
-        self.drawTick(self.max_v, TICK_LEN, TICK_WID, ARC_WIDTH / 2)
+        self.drawTick(self.max_v, ARC_WIDTH * 2, TICK_WID, ARC_WIDTH / 2)
         self.drawPointer(self.value)
         self.drawDisplay(self.value)
 
@@ -89,6 +85,12 @@ class Gauge(Canvas):
             x_center, y_center, self.size / 2 + offset - len, theta
         )
         self.create_line(up_x, up_y, down_x, down_y, width=wid)
+        tag_x, tag_y = self.getLocOnArc(
+            x_center, y_center, self.size / 2 + offset - len - 15, theta
+        )
+        self.create_text(
+            tag_x, tag_y, text=round(value), font=("Helvetica", 12, "italic")
+        )
 
     def drawPointer(self, value):
         PIVOT_SIZE = 5
@@ -107,7 +109,7 @@ class Gauge(Canvas):
         down_x, down_y = self.getLocOnArc(
             x_center, y_center, self.size * (1 - POINTER_UP) / 2, theta + 180
         )
-        self.create_line(up_x, up_y, down_x, down_y, width=3, tags="pointer")
+        self.create_line(up_x, up_y, down_x, down_y, width=4, tags="pointer")
         self.drawPivot(x_center, y_center, PIVOT_SIZE, PIVOT_COL)
 
     def drawPivot(self, x, y, size, color):
@@ -131,13 +133,13 @@ class Gauge(Canvas):
             self.loc["x"] + self.size / 2,
             self.loc["y"] + self.size + 15,
             text=value,
-            font=("Helvetica", 10),
+            font=("Helvetica", 20),
             fill="white",
             tags="display",
         )
         bbox = self.bbox(text)
         box = self.create_rectangle(
-            bbox, outline="purple", fill=self.color_set[section]
+            bbox, outline="purple", fill=self.color_set[section], tags="display_box"
         )
         self.tag_raise(text, box)
 

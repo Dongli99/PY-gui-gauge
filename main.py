@@ -4,7 +4,7 @@ from gauge import Gauge
 
 def main():
     root = Tk()
-    root.geometry("400x250+300+300")
+    root.geometry("800x500+300+300")
     root.title("Data Display")
     gauge = Gauge()
     gauge.setValue(100)
