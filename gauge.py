@@ -5,18 +5,27 @@ from util import generateColors
 
 class Gauge(Canvas):
 
-    MAX_VALUE = 250
-    MIN_VALUE = 0
-    MAX_ANGLE = 270
-    SIZE = 120
-    PARTITION = 4
-    LOCATION = {"x": 50, "y": 50}
-    COLORS_RANGE = [[255, 0, 0], [0, 0, 255]]  # red and blue
-
-    def __init__(self, value=0):
+    def __init__(
+        self,
+        value=0,
+        max_v=250,
+        min_v=0,
+        max_angle=240,
+        size=120,
+        partition=4,
+        loc={"x": 50, "y": 50},
+        col_range=[[255, 0, 0], [0, 0, 255]],
+    ):
         super().__init__()
         self.value = value
-        self.color_set = generateColors(Gauge.COLORS_RANGE, Gauge.PARTITION - 1)
+        self.max_v = max_v
+        self.min_v = min_v
+        self.max_angle = max_angle
+        self.size = size
+        self.partition = partition
+        self.loc = loc
+        self.col_range = col_range
+        self.color_set = generateColors(self.col_range, self.partition - 1)
         self.initUI()
 
     def initUI(self):
@@ -34,24 +43,24 @@ class Gauge(Canvas):
         TICK_WID = 3
         ARC_WIDTH = 3
         self.create_text(
-            Gauge.LOCATION["x"] + Gauge.SIZE / 2,
-            Gauge.LOCATION["y"] - 20,
+            self.loc["x"] + self.size / 2,
+            self.loc["y"] - 20,
             text="GAUGE",
         )
-        self.drawTick(Gauge.MIN_VALUE, TICK_LEN, TICK_WID, ARC_WIDTH / 2)
-        for i in range(Gauge.PARTITION):
+        self.drawTick(self.min_v, TICK_LEN, TICK_WID, ARC_WIDTH / 2)
+        for i in range(self.partition):
             self.drawArc(
-                Gauge.LOCATION,
-                Gauge.SIZE,
-                Gauge.MAX_ANGLE / Gauge.PARTITION * i - (Gauge.MAX_ANGLE - 180) / 2,
-                Gauge.MAX_ANGLE / Gauge.PARTITION,
+                self.loc,
+                self.size,
+                self.max_angle / self.partition * i - (self.max_angle - 180) / 2,
+                self.max_angle / self.partition,
                 self.color_set[i],
                 ARC_WIDTH,
             )
             self.drawTick(
-                Gauge.MAX_VALUE / Gauge.PARTITION * i, TICK_LEN, TICK_WID, ARC_WIDTH / 2
+                self.max_v / self.partition * i, TICK_LEN, TICK_WID, ARC_WIDTH / 2
             )
-        self.drawTick(Gauge.MAX_VALUE, TICK_LEN, TICK_WID, ARC_WIDTH / 2)
+        self.drawTick(self.max_v, TICK_LEN, TICK_WID, ARC_WIDTH / 2)
         self.drawPointer(self.value)
         self.drawDisplay(self.value)
 
@@ -69,17 +78,15 @@ class Gauge(Canvas):
         )
 
     def drawTick(self, value, len, wid, offset):
-        x_center = Gauge.LOCATION["x"] + Gauge.SIZE / 2
-        y_center = Gauge.LOCATION["y"] + Gauge.SIZE / 2
+        x_center = self.loc["x"] + self.size / 2
+        y_center = self.loc["y"] + self.size / 2
         theta = 180 - (
-            value * Gauge.MAX_ANGLE / (Gauge.MAX_VALUE - Gauge.MIN_VALUE)
-            - (Gauge.MAX_ANGLE - 180) / 2
+            value * self.max_angle / (self.max_v - self.min_v)
+            - (self.max_angle - 180) / 2
         )
-        up_x, up_y = self.getLocOnArc(
-            x_center, y_center, Gauge.SIZE / 2 + offset, theta
-        )
+        up_x, up_y = self.getLocOnArc(x_center, y_center, self.size / 2 + offset, theta)
         down_x, down_y = self.getLocOnArc(
-            x_center, y_center, Gauge.SIZE / 2 + offset - len, theta
+            x_center, y_center, self.size / 2 + offset - len, theta
         )
         self.create_line(up_x, up_y, down_x, down_y, width=wid)
 
@@ -87,18 +94,18 @@ class Gauge(Canvas):
         PIVOT_SIZE = 5
         PIVOT_COL = "silver"
         POINTER_UP = 0.8
-        x_center = Gauge.LOCATION["x"] + Gauge.SIZE / 2
-        y_center = Gauge.LOCATION["y"] + Gauge.SIZE / 2
+        x_center = self.loc["x"] + self.size / 2
+        y_center = self.loc["y"] + self.size / 2
         # draw the pointer
         theta = 180 - (
-            value * Gauge.MAX_ANGLE / (Gauge.MAX_VALUE - Gauge.MIN_VALUE)
-            - (Gauge.MAX_ANGLE - 180) / 2
+            value * self.max_angle / (self.max_v - self.min_v)
+            - (self.max_angle - 180) / 2
         )
         up_x, up_y = self.getLocOnArc(
-            x_center, y_center, Gauge.SIZE * POINTER_UP / 2, theta
+            x_center, y_center, self.size * POINTER_UP / 2, theta
         )
         down_x, down_y = self.getLocOnArc(
-            x_center, y_center, Gauge.SIZE * (1 - POINTER_UP) / 2, theta + 180
+            x_center, y_center, self.size * (1 - POINTER_UP) / 2, theta + 180
         )
         self.create_line(up_x, up_y, down_x, down_y, width=3, tags="pointer")
         self.drawPivot(x_center, y_center, PIVOT_SIZE, PIVOT_COL)
@@ -116,15 +123,13 @@ class Gauge(Canvas):
 
     def drawDisplay(self, value):
         section = (
-            Gauge.PARTITION
+            self.partition
             - 1
-            - (value - Gauge.MIN_VALUE)
-            * Gauge.PARTITION
-            // (Gauge.MAX_VALUE - Gauge.MIN_VALUE)
+            - (value - self.min_v) * self.partition // (self.max_v - self.min_v)
         )
         text = self.create_text(
-            Gauge.LOCATION["x"] + Gauge.SIZE / 2,
-            Gauge.LOCATION["y"] + Gauge.SIZE + 15,
+            self.loc["x"] + self.size / 2,
+            self.loc["y"] + self.size + 15,
             text=value,
             font=("Helvetica", 10),
             fill="white",
