@@ -59,7 +59,7 @@ class Gauge(Frame):
 
     def initUI(self):
         """Initialize the graphical user interface (GUI) of the gauge."""
-        self.master.title("Lab 9 - Gauge")
+        self.master.title("Gauge")
         self.pack(fill=BOTH, expand=1)
         self.drawTop()  # Draw the top part of the gauge
         self.drawBottom()  # Draw the bottom part of the gauge
