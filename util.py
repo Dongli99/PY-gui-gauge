@@ -1,3 +1,6 @@
+import random
+
+
 def hexColor(rgb):
     red = int(rgb[0])
     green = int(rgb[1])
@@ -18,3 +21,11 @@ def generateColors(c_range, steps):
         colors.append(hexColor([red, green, blue]))
     colors.append(hexColor(c_range[-1]))
     return colors
+
+
+def generateRandomColor():
+    """Generate a random RGB color."""
+    red = random.randint(0, 255)
+    green = random.randint(0, 255)
+    blue = random.randint(0, 255)
+    return [red, green, blue]
