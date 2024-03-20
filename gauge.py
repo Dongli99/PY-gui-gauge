@@ -186,7 +186,7 @@ class Gauge(Frame):
             self.partition
             - 1
             - (value - self.min_v) * self.partition // (self.max_v - self.min_v)
-        )
+        )  # which section does the value located on the gauge
         text = self.canvas.create_text(
             self.loc[0] + self.size / 2,
             self.loc[1] + self.size + 15,
