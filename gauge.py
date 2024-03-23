@@ -77,7 +77,62 @@ class Gauge(Frame):
         self.drawPointer(self.value)
         self.drawDisplay(self.value)
 
-    def drawArc(self, loc, size, start_angle, angle, color, wid):
+    def drawTop(self):
+        """Draw the top part of the gauge."""
+        frame = Frame(self)
+        frame.place(relx=0.03, rely=0.03, relwidth=0.94, relheight=0.75)
+        self.canvas = Canvas(frame)
+        self.canvas.pack(fill=BOTH, expand=1)
+        self.color_set = generateColors(self.col_range, self.partition - 1)
+        self.canvas.create_text(  # title
+            self.loc[0] + self.size / 2,
+            self.loc[1] - 30,
+            text="GAUGE",
+            font=("Helvetica", 12, "bold"),
+        )
+        self.drawArcs()
+        self.drawTicks()
+        self.drawPointer(self.value)
+        self.drawDisplay(self.value)
+
+    def drawBottom(self):
+        """Draw the bottom part of the gauge."""
+
+        def handleUpdate():
+            try:
+                value = int(self.value_var.get())
+                if value <= self.max_v and value >= self.min_v:
+                    self.setValue(value)
+                else:  # in case the value is out of range
+                    messagebox.showinfo(
+                        "Invalid Value",
+                        f"Value must be between {self.min_v} - {self.max_v}",
+                    )
+            except:  # in case the input is not a number.
+                messagebox.showinfo("Invalid Value", "Please enter a number.")
+
+        def handleLucky():
+            # randomize color, angle, partition, arc width
+            self.col_range[0] = generateRandomColor()
+            self.col_range[1] = generateRandomColor()
+            self.color_set = generateColors(self.col_range, self.partition - 1)
+            self.max_angle = random.randint(90, 330)
+            self.partition = random.randint(3, 10)
+            self.arc_wid = random.randint(3, 30)
+            self.canvas.delete("arc")
+            self.drawTop()
+            self.setValue(random.randint(0, 250))
+
+        frame = Frame(self)
+        frame.place(relx=0.03, rely=0.8, relwidth=0.94, relheight=0.1)
+        entry = Entry(frame, textvariable=self.value_var)
+        entry.place(relx=0.47, rely=0.35, relwidth=0.06, relheight=0.4)
+        submit_btn = Button(frame, text="UPDATE", command=handleUpdate)
+        submit_btn.place(relx=0.56, rely=0.35, relwidth=0.12, relheight=0.4)
+        lucky_btn = Button(frame, text="LUCKY", command=handleLucky)
+        lucky_btn.place(relx=0.32, rely=0.35, relwidth=0.12, relheight=0.4)
+
+    def drawArcs(self):
         """
         Draw an arc on the canvas.
 
@@ -89,20 +144,21 @@ class Gauge(Frame):
             color (str): Color of the arc.
             wid (int): Width of the arc.
         """
-        self.canvas.create_arc(
-            loc[0],
-            loc[1],  # top left
-            loc[0] + size,
-            loc[1] + size,  # bottom right
-            start=start_angle,
-            extent=angle,  # start angle how far to go
-            style="arc",  # draw arc rather than fan
-            outline=color,
-            width=wid,
-            tags="arc",
-        )
+        for i in range(self.partition):
+            self.canvas.create_arc(
+                self.loc[0],
+                self.loc[1],  # top left
+                self.loc[0] + self.size,
+                self.loc[1] + self.size,  # bottom right
+                start=self.max_angle / self.partition * i - (self.max_angle - 180) / 2,
+                extent=self.max_angle / self.partition,  # start angle how far to go
+                style="arc",  # draw arc rather than fan
+                outline=self.color_set[i],
+                width=self.arc_wid,
+                tags="arc",
+            )
 
-    def drawTick(self, value, len, wid, offset):
+    def drawTicks(self):
         """
         Draw a tick mark on the gauge.
 
@@ -112,23 +168,29 @@ class Gauge(Frame):
             wid (int): Width of the tick mark.
             offset (int): Offset of the tick mark from the center of the gauge.
         """
-        x_center = self.loc[0] + self.size / 2
-        y_center = self.loc[1] + self.size / 2
-        theta = 180 - (
-            value * self.max_angle / (self.max_v - self.min_v)
-            - (self.max_angle - 180) / 2
-        )
-        up_x, up_y = self.getLocOnArc(x_center, y_center, self.size / 2 + offset, theta)
-        down_x, down_y = self.getLocOnArc(
-            x_center, y_center, self.size / 2 + offset - len, theta
-        )
-        self.canvas.create_line(up_x, up_y, down_x, down_y, width=wid, fill="#2b2d42")
-        tag_x, tag_y = self.getLocOnArc(
-            x_center, y_center, self.size / 2 + offset - len - 15, theta
-        )
-        self.canvas.create_text(
-            tag_x, tag_y, text=round(value), font=("Helvetica", 12, "italic")
-        )
+        for i in range(self.partition + 1):
+            value = self.max_v / self.partition * i
+            length = self.arc_wid * 2
+            offset = self.arc_wid / 2
+            cx = self.loc[0] + self.size / 2
+            cy = self.loc[1] + self.size / 2
+            theta = 180 - (  #
+                value * self.max_angle / (self.max_v - self.min_v)
+                - (self.max_angle - 180) / 2
+            )
+            tip_x, tip_y = self.getLocOnArc(cx, cy, self.size / 2 + offset, theta)
+            end_x, end_y = self.getLocOnArc(
+                cx, cy, self.size / 2 + offset - length, theta
+            )
+            self.canvas.create_line(
+                tip_x, tip_y, end_x, end_y, width=self.tick_wid, fill="#2b2d42"
+            )
+            tag_x, tag_y = self.getLocOnArc(
+                cx, cy, self.size / 2 + offset - length - 15, theta
+            )
+            self.canvas.create_text(
+                tag_x, tag_y, text=round(value), font=("Helvetica", 12, "italic")
+            )
 
     def drawPointer(self, value):
         """
@@ -140,21 +202,19 @@ class Gauge(Frame):
         PIVOT_SIZE = 5
         PIVOT_COL = "silver"
         POINTER_UP = 0.8
-        x_center = self.loc[0] + self.size / 2
-        y_center = self.loc[1] + self.size / 2
+        cx = self.loc[0] + self.size / 2
+        cy = self.loc[1] + self.size / 2
         # draw the pointer
-        theta = 180 - (
+        theta = 180 - (  # Angle of the current value on the arc
             value * self.max_angle / (self.max_v - self.min_v)
             - (self.max_angle - 180) / 2
         )
-        up_x, up_y = self.getLocOnArc(
-            x_center, y_center, self.size * POINTER_UP / 2, theta
+        tip_x, tip_y = self.getLocOnArc(cx, cy, self.size * POINTER_UP / 2, theta)
+        end_x, end_y = self.getLocOnArc(
+            cx, cy, self.size * (1 - POINTER_UP) / 2, theta + 180
         )
-        down_x, down_y = self.getLocOnArc(
-            x_center, y_center, self.size * (1 - POINTER_UP) / 2, theta + 180
-        )
-        self.canvas.create_line(up_x, up_y, down_x, down_y, width=4, tags="pointer")
-        self.drawPivot(x_center, y_center, PIVOT_SIZE, PIVOT_COL)
+        self.canvas.create_line(tip_x, tip_y, end_x, end_y, width=4, tags="pointer")
+        self.drawPivot(cx, cy, PIVOT_SIZE, PIVOT_COL)
 
     def drawPivot(self, x, y, size, color):
         """
@@ -186,7 +246,7 @@ class Gauge(Frame):
             self.partition
             - 1
             - (value - self.min_v) * self.partition // (self.max_v - self.min_v)
-        )  # which section does the value located on the gauge
+        )  # check the section the value located on the gauge
         text = self.canvas.create_text(
             self.loc[0] + self.size / 2,
             self.loc[1] + self.size + 15,
@@ -199,82 +259,15 @@ class Gauge(Frame):
         box = self.canvas.create_rectangle(
             bbox, outline="", fill=self.color_set[section], tags="display_box"
         )
-        self.canvas.tag_raise(text, box)
+        self.canvas.tag_raise(text, box)  # raise index of text layer
 
-    def drawTop(self):
-        """Draw the top part of the gauge."""
-        frame = Frame(self)
-        frame.place(relx=0.03, rely=0.03, relwidth=0.94, relheight=0.75)
-        self.canvas = Canvas(frame)
-        self.canvas.pack(fill=BOTH, expand=1)
-        self.color_set = generateColors(self.col_range, self.partition - 1)
-        self.canvas.create_text(
-            self.loc[0] + self.size / 2,
-            self.loc[1] - 30,
-            text="GAUGE",
-            font=("Helvetica", 12, "bold"),
-        )
-        for i in range(self.partition):
-            self.drawArc(
-                self.loc,
-                self.size,
-                self.max_angle / self.partition * i - (self.max_angle - 180) / 2,
-                self.max_angle / self.partition,
-                self.color_set[i],
-                self.arc_wid,
-            )
-        for i in range(self.partition):
-            self.drawTick(
-                self.max_v / self.partition * i,
-                self.arc_wid * 2,
-                self.tick_wid,
-                self.arc_wid / 2,
-            )
-        self.drawTick(self.min_v, self.arc_wid * 2, self.tick_wid, self.arc_wid / 2)
-        self.drawTick(self.max_v, self.arc_wid * 2, self.tick_wid, self.arc_wid / 2)
-        self.drawPointer(self.value)
-        self.drawDisplay(self.value)
-
-    def drawBottom(self):
-        """Draw the bottom part of the gauge."""
-
-        def handleUpdate():
-            value = int(self.value_var.get())
-            if value <= self.max_v and value >= self.min_v:
-                self.setValue(value)
-            else:
-                messagebox.showinfo(
-                    "Invalid Value",
-                    f"Value must be between {self.min_v} - {self.max_v}",
-                )
-
-        def handleLucky():
-            self.col_range[0] = generateRandomColor()
-            self.col_range[1] = generateRandomColor()
-            self.color_set = generateColors(self.col_range, self.partition - 1)
-            self.max_angle = random.randint(90, 330)
-            self.partition = random.randint(3, 10)
-            self.arc_wid = random.randint(3, 30)
-            self.canvas.delete("arc")
-            self.drawTop()
-            self.setValue(random.randint(0, 250))
-
-        frame = Frame(self)
-        frame.place(relx=0.03, rely=0.8, relwidth=0.94, relheight=0.1)
-        entry = Entry(frame, textvariable=self.value_var)
-        entry.place(relx=0.47, rely=0.35, relwidth=0.06, relheight=0.4)
-        submit_btn = Button(frame, text="UPDATE", command=handleUpdate)
-        submit_btn.place(relx=0.56, rely=0.35, relwidth=0.12, relheight=0.4)
-        lucky_btn = Button(frame, text="LUCKY", command=handleLucky)
-        lucky_btn.place(relx=0.32, rely=0.35, relwidth=0.12, relheight=0.4)
-
-    def getLocOnArc(self, center_x, center_y, r, theta):
+    def getLocOnArc(self, cx, cy, r, theta):
         """
         Get the coordinates of a point on an arc.
 
         Args:
-            center_x (int): x-coordinate of the center of the arc.
-            center_y (int): y-coordinate of the center of the arc.
+            cx (int): x-coordinate of the center of the arc.
+            cy (int): y-coordinate of the center of the arc.
             r (int): Radius of the arc.
             theta (int): Angle (in degrees) of the point on the arc.
 
@@ -282,8 +275,8 @@ class Gauge(Frame):
             tuple: The (x, y) coordinates of the point on the arc.
         """
         theta = radians(theta)
-        x = r * cos(theta) + center_x
-        y = center_y - r * sin(theta)  # Invert y due to Tkinter's coordinate system
+        x = r * cos(theta) + cx
+        y = cy - r * sin(theta)  # Invert y due to Tkinter's coordinate system
         return x, y
 
 

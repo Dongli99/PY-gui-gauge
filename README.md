@@ -1,4 +1,4 @@
-<h1 align="center"> Python GUI - Gauge && Bar </h1>
+<h1 align="center"> Python GUI - Gauge </h1>
 
 <div align='center'>
   <img src="https://img.shields.io/badge/python-3776AB.svg?style=for-the-badge&logo=python&logoColor=white" alt="python">
@@ -17,8 +17,8 @@
 
 The Gauge Widget is a customizable graphical representation of a gauge, implemented using the Tkinter library in Python. It allows you to create visually appealing gauges with customizable parameters such as size, range, colors, and more.
 
-- The bar is not completed yet.  
-- A sister project named VoiceDataGenerator please check this [repository](https://github.com/Dongli99/PY-voice-data-generator).
+- A previous sister project named VoiceDataGenerator please check this [repository](https://github.com/Dongli99/PY-voice-data-generator).
+- A following sister project of Time Series is coming soon.
 
 ## Features
 
