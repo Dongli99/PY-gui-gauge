@@ -17,8 +17,13 @@
 
 The Gauge Widget is a customizable graphical representation of a gauge, implemented using the Tkinter library in Python. It allows you to create visually appealing gauges with customizable parameters such as size, range, colors, and more.
 
-- A previous sister project named VoiceDataGenerator please check this [repository](https://github.com/Dongli99/PY-voice-data-generator).
-- A following sister project of Time Series is coming soon.
+**Sister projects:**
+
+- [VoiceDataGenerator](https://github.com/Dongli99/PY-voice-data-generator) <image src="img/voice.png" style="width:15%">
+  - Simulating voice data with customizable parameters such as pitch, duration, and noise.  
+
+- [DynamicChart](https://github.com/Dongli99/PY-dynamic-chart)  <image src="img/chart.png" style="width:7%">
+  - Displays a dynamic chart with real-time data visualization.  
 
 ## Features
 
